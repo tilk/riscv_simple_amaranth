@@ -1,4 +1,5 @@
 {
+  "stubPath": "./stubs",
   "reportMissingImports": true,
   "reportMissingTypeStubs": false
 }
