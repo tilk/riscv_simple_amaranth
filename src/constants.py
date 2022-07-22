@@ -1,16 +1,17 @@
 from enum import Enum
 
 class AluOp(Enum):
-    ADD = 1
-    SUB = 2
-    SLL = 3
-    SRL = 4
-    SRA = 5
-    SEQ = 6
-    SLT = 7
+    ADD  = 1
+    SUB  = 2
+    SLL  = 3
+    SRL  = 4
+    SRA  = 5
+    SEQ  = 6
+    SLT  = 7
     SLTU = 8
-    XOR = 9
-    AND = 10
+    XOR  = 9
+    OR   = 10
+    AND  = 11
 
 class AluOpType(Enum):
     ADD    = 0
