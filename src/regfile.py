@@ -1,14 +1,15 @@
 from amaranth import *
+from .arch import ArchVariant
 
 class RegFile(Elaboratable):
-    def __init__(self, variant):
+    def __init__(self, variant: ArchVariant):
         self.variant = variant
-        self.as1 = Signal(variant.REGS_BITS)
-        self.as2 = Signal(variant.REGS_BITS)
-        self.ad  = Signal(variant.REGS_BITS)
-        self.rs1 = Signal(variant.BIT_WIDTH)
-        self.rs2 = Signal(variant.BIT_WIDTH)
-        self.rd  = Signal(variant.BIT_WIDTH)
+        self.rs1_addr = Signal(variant.REGS_BITS)
+        self.rs2_addr = Signal(variant.REGS_BITS)
+        self.rd_addr  = Signal(variant.REGS_BITS)
+        self.rs1_data = Signal(variant.BIT_WIDTH)
+        self.rs2_data = Signal(variant.BIT_WIDTH)
+        self.rd_data  = Signal(variant.BIT_WIDTH)
         self.we  = Signal()
 
     def elaborate(self, platform):
@@ -19,14 +20,14 @@ class RegFile(Elaboratable):
         m.submodules.ps2 = ps2 = regs.read_port(domain="comb")
         m.submodules.pd  = pd  = regs.write_port()
 
-        m.d.comb += ps1.addr.eq(self.as1)
-        m.d.comb += self.rs1.eq(ps1.data)
+        m.d.comb += ps1.addr.eq(self.rs1_addr)
+        m.d.comb += self.rs1_data.eq(ps1.data)
 
-        m.d.comb += ps2.addr.eq(self.as2)
-        m.d.comb += self.rs2.eq(ps2.data)
+        m.d.comb += ps2.addr.eq(self.rs2_addr)
+        m.d.comb += self.rs2_data.eq(ps2.data)
 
-        m.d.comb += pd.addr.eq(self.ad)
-        m.d.comb += pd.data.eq(self.rd)
-        m.d.comb += pd.en.eq(self.we & self.ad != 0)
+        m.d.comb += pd.addr.eq(self.rd_addr)
+        m.d.comb += pd.data.eq(self.rd_data)
+        m.d.comb += pd.en.eq(self.we & self.rd_addr != 0)
 
         return m

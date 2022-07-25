@@ -1,10 +1,10 @@
 from amaranth import *
 from .constants import AluOp
-
+from .arch import ArchVariant
 
 class Alu(Elaboratable):
-    def __init__(self, variant):
-        self.aluOp = Signal(AluOp)
+    def __init__(self, variant: ArchVariant):
+        self.alu_op = Signal(AluOp)
         self.a = Signal(signed(variant.BIT_WIDTH))
         self.b = Signal(signed(variant.BIT_WIDTH))
         self.r = Signal(variant.BIT_WIDTH)
@@ -12,7 +12,7 @@ class Alu(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        with m.Switch(self.aluOp):
+        with m.Switch(self.alu_op):
             with m.Case(AluOp.ADD):
                 m.d.comb += self.r.eq(self.a + self.b)
             with m.Case(AluOp.SUB):

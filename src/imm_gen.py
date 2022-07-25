@@ -1,8 +1,9 @@
 from amaranth import *
 from . import isa
+from .arch import ArchVariant
 
 class ImmGen(Elaboratable):
-    def __init__(self, variant):
+    def __init__(self, variant: ArchVariant):
         self.inst = Signal(isa.INSN_BITS)
         self.imm = Signal(variant.BIT_WIDTH)
 

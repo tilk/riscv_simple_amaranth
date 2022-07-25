@@ -3,7 +3,7 @@ from . import isa
 
 class InsnDecoder(Elaboratable):
     def __init__(self):
-        self.inst   = Signal(isa.INSN_BITS)
+        self.insn   = Signal(isa.INSN_BITS)
         self.opcode = Signal(isa.OPCODE_BITS)
         self.funct3 = Signal(3)
         self.funct7 = Signal(7)
@@ -14,11 +14,11 @@ class InsnDecoder(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.d.comb += self.opcode.eq(self.inst[0:7])
-        m.d.comb += self.funct3.eq(self.inst[12:15])
-        m.d.comb += self.funct7.eq(self.inst[25:32])
-        m.d.comb += self.rd.eq(self.inst[7:12])
-        m.d.comb += self.rs1.eq(self.inst[15:20])
-        m.d.comb += self.rs2.eq(self.inst[20:24])
+        m.d.comb += self.opcode.eq(self.insn[0:7])
+        m.d.comb += self.funct3.eq(self.insn[12:15])
+        m.d.comb += self.funct7.eq(self.insn[25:32])
+        m.d.comb += self.rd.eq(self.insn[7:12])
+        m.d.comb += self.rs1.eq(self.insn[15:20])
+        m.d.comb += self.rs2.eq(self.insn[20:24])
 
         return m
