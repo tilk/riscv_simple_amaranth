@@ -22,8 +22,8 @@ class SingleCycleDataPath(Elaboratable):
         self.reg_we = Signal()
         self.alua_sel = Signal(AluASel)
         self.alub_sel = Signal(AluBSel)
-        self.wb_sel = Signal(WbSel)
         self.alu_op = Signal(AluOp)
+        self.wb_sel = Signal(WbSel)
         self.pc_sel = Signal(PCSel)
 
         # Program memory
@@ -32,8 +32,8 @@ class SingleCycleDataPath(Elaboratable):
 
         # Data memory
         self.mem_addr = Signal(variant.BIT_WIDTH)
-        self.mem_read_data = Signal(variant.BIT_WIDTH)
-        self.mem_write_data = Signal(variant.BIT_WIDTH)
+        self.mem_rdata = Signal(variant.BIT_WIDTH)
+        self.mem_wdata = Signal(variant.BIT_WIDTH)
 
     def elaborate(self, platform):
         m = Module()
@@ -51,7 +51,7 @@ class SingleCycleDataPath(Elaboratable):
         m.d.comb += regfile.rs2_addr.eq(insn_decoder.rs2)
         m.d.comb += regfile.rd_addr.eq(insn_decoder.rd)
         m.d.comb += regfile.we.eq(self.reg_we)
-        m.d.comb += self.mem_write_data.eq(regfile.rs2_data)
+        m.d.comb += self.mem_wdata.eq(regfile.rs2_data)
         m.d.comb += self.mem_addr.eq(alu.r)
 
         next_pc = Signal.like(self.pc)
@@ -89,6 +89,6 @@ class SingleCycleDataPath(Elaboratable):
             with m.Case(WbSel.PC4):
                 m.d.comb += regfile.rd_data.eq(pc_plus_4)
             with m.Case(WbSel.DATA):
-                m.d.comb += regfile.rd_data.eq(self.mem_read_data)
+                m.d.comb += regfile.rd_data.eq(self.mem_rdata)
 
         return m
