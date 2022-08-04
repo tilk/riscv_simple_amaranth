@@ -8,6 +8,8 @@ class SingleCycleControl(Elaboratable):
     def __init__(self):
         self.opcode = Signal(isa.OPCODE_BITS)
         self.take_branch = Signal()
+        self.insn_ack = Signal()
+        self.mem_ack = Signal()
 
         self.pc_we = Signal()
         self.reg_we = Signal()

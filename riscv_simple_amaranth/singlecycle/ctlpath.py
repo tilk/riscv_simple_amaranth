@@ -3,6 +3,7 @@ from .. import isa
 from ..constants import AluASel, AluBSel, AluOp, AluOpType, PCSel, WbSel
 from ..branchctl import BranchControl
 from ..aluctl import AluControl
+from .control import SingleCycleControl
 
 class SingleCycleControlPath(Elaboratable):
     def __init__(self):
@@ -11,6 +12,7 @@ class SingleCycleControlPath(Elaboratable):
         self.funct7 = Signal(7)
         self.result_eqz = Signal()
 
+        self.insn_we = Signal()
         self.pc_we = Signal()
         self.reg_we = Signal()
         self.alua_sel = Signal(AluASel)
@@ -24,19 +26,27 @@ class SingleCycleControlPath(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        take_branch = Signal()
-        op_type = Signal(AluOpType)
-
         m.submodules.branch_control = branch_control = BranchControl()
         m.submodules.alu_control = alu_control = AluControl()
+        m.submodules.control = control = SingleCycleControl()
 
         m.d.comb += branch_control.funct3.eq(self.funct3)
         m.d.comb += branch_control.result_eqz.eq(self.result_eqz)
-        m.d.comb += take_branch.eq(branch_control.take_branch)
 
         m.d.comb += alu_control.funct3.eq(self.funct3)
         m.d.comb += alu_control.funct7.eq(self.funct7)
-        m.d.comb += alu_control.op_type.eq(op_type)
+        m.d.comb += alu_control.op_type.eq(control.alu_op_type)
         m.d.comb += self.alu_op.eq(alu_control.alu_op)
+
+        m.d.comb += control.opcode.eq(self.opcode)
+        m.d.comb += control.take_branch.eq(branch_control.take_branch)
+        m.d.comb += self.pc_we.eq(control.pc_we)
+        m.d.comb += self.reg_we.eq(control.reg_we)
+        m.d.comb += self.alua_sel.eq(control.alua_sel)
+        m.d.comb += self.alub_sel.eq(control.alub_sel)
+        m.d.comb += self.mem_re.eq(control.mem_re)
+        m.d.comb += self.mem_we.eq(control.mem_we)
+        m.d.comb += self.wb_sel.eq(control.wb_sel)
+        m.d.comb += self.pc_sel.eq(control.pc_sel)
 
         return m

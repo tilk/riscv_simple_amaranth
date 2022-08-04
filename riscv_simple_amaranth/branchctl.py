@@ -1,5 +1,5 @@
 from amaranth import *
-from isa import Funct3Branch
+from .isa import Funct3Branch
 
 
 class BranchControl(Elaboratable):

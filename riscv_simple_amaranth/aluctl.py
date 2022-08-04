@@ -1,6 +1,6 @@
 from amaranth import *
-from constants import AluOpType, AluOp
-from isa import Funct3Alu, Funct3Branch
+from .constants import AluOpType, AluOp
+from .isa import Funct3Alu, Funct3Branch
 
 
 class AluControl(Elaboratable):
