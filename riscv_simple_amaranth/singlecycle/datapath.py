@@ -1,6 +1,6 @@
 from amaranth import *
 from .. import isa
-from ..constants import AluASel, AluBSel, WbSel, AluOp, PCSel
+from ..constants import AluASel, AluBSel, WbSel, AluOp, PCSel, InsnSel
 from ..arch import ArchVariant
 from ..alu import Alu
 from ..regfile import RegFile
@@ -21,6 +21,7 @@ class SingleCycleDataPath(Elaboratable):
         self.insn_we = Signal()
         self.pc_we = Signal()
         self.reg_we = Signal()
+        self.insn_sel = Signal(InsnSel)
         self.alua_sel = Signal(AluASel)
         self.alub_sel = Signal(AluBSel)
         self.alu_op = Signal(AluOp)
@@ -45,7 +46,13 @@ class SingleCycleDataPath(Elaboratable):
         m.submodules.imm_gen = imm_gen = ImmGen(self.variant)
 
         insn_reg = Signal.like(self.insn)
-        insn = Mux(self.insn_we, self.insn, insn_reg)
+        insn = Signal.like(self.insn)
+
+        with m.Switch(self.insn_sel):
+            with m.Case(InsnSel.INSN):
+                m.d.comb += insn.eq(self.insn)
+            with m.Case(InsnSel.IR):
+                m.d.comb += insn.eq(insn_reg)
 
         with m.If(self.insn_we):
             m.d.sync += insn_reg.eq(self.insn)

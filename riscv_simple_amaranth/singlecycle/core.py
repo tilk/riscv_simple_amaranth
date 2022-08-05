@@ -36,6 +36,9 @@ class SingleCycleCore(Elaboratable):
         m.d.comb += ctl.funct3.eq(data.funct3)
         m.d.comb += ctl.funct7.eq(data.funct7)
         m.d.comb += ctl.result_eqz.eq(data.result_eqz)
+        m.d.comb += ctl.insn_ack.eq(self.insn_ack_i)
+        m.d.comb += data.insn.eq(self.insn_dat_i)
+        m.d.comb += data.insn_we.eq(ctl.insn_we)
         m.d.comb += data.pc_we.eq(ctl.pc_we)
         m.d.comb += data.reg_we.eq(ctl.reg_we)
         m.d.comb += data.alua_sel.eq(ctl.alua_sel)
@@ -43,6 +46,7 @@ class SingleCycleCore(Elaboratable):
         m.d.comb += data.alu_op.eq(ctl.alu_op)
         m.d.comb += data.wb_sel.eq(ctl.wb_sel)
         m.d.comb += data.pc_sel.eq(ctl.pc_sel)
+        m.d.comb += data.insn_sel.eq(ctl.insn_sel)
 
         m.d.comb += data_iface.mem_addr.eq(data.mem_addr)
         m.d.comb += data_iface.mem_wdata.eq(data.mem_wdata)
@@ -60,5 +64,9 @@ class SingleCycleCore(Elaboratable):
         m.d.comb += self.mem_cyc_o.eq(data_iface.wb_cyc_o)
         m.d.comb += data_iface.wb_dat_i.eq(self.mem_dat_i)
         m.d.comb += data_iface.wb_ack_i.eq(self.mem_ack_i)
+
+        m.d.comb += self.insn_adr_o.eq(data.pc[2:self.variant.BIT_WIDTH])
+        m.d.comb += self.insn_stb_o.eq(ctl.insn_stb)
+        m.d.comb += self.insn_cyc_o.eq(ctl.insn_stb)
 
         return m

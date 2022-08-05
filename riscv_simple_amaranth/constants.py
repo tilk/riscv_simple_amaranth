@@ -38,3 +38,8 @@ class PCSel(Enum):
     PC_IMM  = 1
     RS1_IMM = 2
     PC4_BR  = 3
+
+class InsnSel(Enum):
+    ZERO = 0
+    INSN = 1
+    IR = 2

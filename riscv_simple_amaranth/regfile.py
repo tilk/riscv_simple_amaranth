@@ -15,7 +15,7 @@ class RegFile(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.regs = regs = Memory(width=self.variant.BIT_WIDTH, depth=self.variant.REGS)
+        regs = Memory(width=self.variant.BIT_WIDTH, depth=self.variant.REGS)
         m.submodules.ps1 = ps1 = regs.read_port(domain="comb")
         m.submodules.ps2 = ps2 = regs.read_port(domain="comb")
         m.submodules.pd  = pd  = regs.write_port()

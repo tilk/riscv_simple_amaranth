@@ -11,7 +11,6 @@ class SingleCycleControl(Elaboratable):
         self.insn_ack = Signal()
         self.mem_ack = Signal()
 
-        self.pc_we = Signal()
         self.reg_we = Signal()
         self.alua_sel = Signal(AluASel)
         self.alub_sel = Signal(AluBSel)
@@ -23,8 +22,6 @@ class SingleCycleControl(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-
-        m.d.comb += self.pc_we.eq(1)
 
         def use_alu(alua_sel: AluASel, alub_sel: AluBSel, alu_op_type: AluOpType):
             m.d.comb += self.alua_sel.eq(alua_sel)
