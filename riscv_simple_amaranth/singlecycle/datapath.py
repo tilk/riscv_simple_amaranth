@@ -58,6 +58,7 @@ class SingleCycleDataPath(Elaboratable):
             m.d.sync += insn_reg.eq(self.insn)
 
         m.d.comb += insn_decoder.insn.eq(insn)
+        m.d.comb += self.opcode.eq(insn_decoder.opcode)
         m.d.comb += self.funct3.eq(insn_decoder.funct3)
         m.d.comb += self.funct7.eq(insn_decoder.funct7)
         m.d.comb += alu.alu_op.eq(self.alu_op)
