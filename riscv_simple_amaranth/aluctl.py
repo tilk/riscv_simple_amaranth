@@ -39,9 +39,9 @@ class AluControl(Elaboratable):
 
         with m.Switch(self.funct3):
             with m.Case(Funct3Alu.ADD):
-                m.d.comb += alu_op_secondary.eq(AluOp.ADD)
+                m.d.comb += alu_op_secondary.eq(AluOp.SUB)
             with m.Case(Funct3Alu.SRL):
-                m.d.comb += alu_op_secondary.eq(AluOp.SRL)
+                m.d.comb += alu_op_secondary.eq(AluOp.SRA)
 
         with m.Switch(self.funct3):
             with m.Case(Funct3Branch.EQ):
@@ -62,7 +62,7 @@ class AluControl(Elaboratable):
         with m.Else():
             m.d.comb += alu_op_op.eq(alu_op_default)
 
-        with m.If(self.funct7[5] & self.funct3[0:2] == 1):
+        with m.If(self.funct7[5] & (self.funct3[0:2] == 1)):
             m.d.comb += alu_op_op_imm.eq(alu_op_secondary)
         with m.Else():
             m.d.comb += alu_op_op_imm.eq(alu_op_default)

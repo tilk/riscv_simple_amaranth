@@ -28,7 +28,7 @@ class Alu(Elaboratable):
             with m.Case(AluOp.SLT):
                 m.d.comb += self.r.eq(self.a < self.b)
             with m.Case(AluOp.SLTU):
-                m.d.comb += self.r.eq(self.a <= self.b)
+                m.d.comb += self.r.eq(self.a.as_unsigned() < self.b.as_unsigned())
             with m.Case(AluOp.XOR):
                 m.d.comb += self.r.eq(self.a ^ self.b)
             with m.Case(AluOp.OR):

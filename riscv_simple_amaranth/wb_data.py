@@ -26,12 +26,11 @@ class WishboneData(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        
+
         sel_mask = Signal(self.variant.BYTE_WIDTH)
         byte_off = self.mem_addr[0:self.variant.BYTE_WIDTH_BITS]
         bit_off = byte_off << 3
-        rdata_unsigned = self.wb_dat_i >> bit_off
-        rdata_sign_ext = Signal(self.variant.BYTE_WIDTH)
+        rdata_shifted = self.wb_dat_i >> bit_off
         
         m.d.comb += self.wb_adr_o.eq(self.mem_addr >> self.variant.BYTE_WIDTH_BITS)
         m.d.comb += self.wb_we_o.eq(self.mem_we)
@@ -40,15 +39,14 @@ class WishboneData(Elaboratable):
         m.d.comb += self.wb_sel_o.eq(sel_mask << byte_off)
         m.d.comb += self.wb_dat_o.eq(self.mem_wdata << bit_off)
         m.d.comb += self.mem_ack.eq(self.wb_ack_i)
-        m.d.comb += self.mem_rdata.eq(rdata_unsigned | rdata_sign_ext)
 
         with m.Switch(self.mem_funct3[0:2]):
             for i in range(self.variant.BYTE_WIDTH_BITS + 1):
                 with m.Case(i):
                     m.d.comb += sel_mask.eq(2 ** (2 ** i) - 1)
                     bit_width = 8 * (2 ** i)
-                    sign_bit = rdata_unsigned[bit_width - 1]
-                    m.d.comb += rdata_sign_ext.eq(Cat(Repl(0, bit_width), Repl(sign_bit, self.variant.BIT_WIDTH - bit_width)))
+                    sign_bit = rdata_shifted[bit_width - 1] & ~self.mem_funct3[2]
+                    m.d.comb += self.mem_rdata.eq(Cat(rdata_shifted[0:bit_width], Repl(sign_bit, self.variant.BIT_WIDTH - bit_width)))
 
         return m
 

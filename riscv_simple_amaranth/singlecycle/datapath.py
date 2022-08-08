@@ -29,7 +29,7 @@ class SingleCycleDataPath(Elaboratable):
         self.pc_sel = Signal(PCSel)
 
         # Program memory
-        self.pc = Signal(variant.BIT_WIDTH)
+        self.pc = Signal(variant.BIT_WIDTH, reset=0x400000)
         self.insn = Signal(isa.INSN_BITS)
 
         # Data memory
