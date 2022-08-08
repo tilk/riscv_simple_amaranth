@@ -19,6 +19,6 @@ class InsnDecoder(Elaboratable):
         m.d.comb += self.funct7.eq(self.insn[25:32])
         m.d.comb += self.rd.eq(self.insn[7:12])
         m.d.comb += self.rs1.eq(self.insn[15:20])
-        m.d.comb += self.rs2.eq(self.insn[20:24])
+        m.d.comb += self.rs2.eq(self.insn[20:25])
 
         return m

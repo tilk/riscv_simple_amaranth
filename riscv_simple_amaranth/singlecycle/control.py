@@ -41,12 +41,16 @@ class SingleCycleControl(Elaboratable):
                 writeback(WbSel.ALU)
             with m.Case(Opcode.BRANCH):
                 use_alu(AluASel.RS1, AluBSel.RS2, AluOpType.BRANCH)
+                with m.If(self.take_branch):
+                    m.d.comb += self.pc_sel.eq(PCSel.PC_IMM)
             with m.Case(Opcode.JAL):
                 use_alu(AluASel.PC, AluBSel.IMM, AluOpType.ADD)
                 writeback(WbSel.PC4)
+                m.d.comb += self.pc_sel.eq(PCSel.PC_IMM)
             with m.Case(Opcode.JALR):
                 use_alu(AluASel.RS1, AluBSel.IMM, AluOpType.ADD)
                 writeback(WbSel.PC4)
+                m.d.comb += self.pc_sel.eq(PCSel.RS1_IMM)
             with m.Case(Opcode.LOAD):
                 use_alu(AluASel.RS1, AluBSel.IMM, AluOpType.ADD)
                 writeback(WbSel.DATA)

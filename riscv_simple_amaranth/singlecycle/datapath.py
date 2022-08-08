@@ -58,9 +58,11 @@ class SingleCycleDataPath(Elaboratable):
             m.d.sync += insn_reg.eq(self.insn)
 
         m.d.comb += insn_decoder.insn.eq(insn)
+        m.d.comb += imm_gen.insn.eq(insn)
         m.d.comb += self.opcode.eq(insn_decoder.opcode)
         m.d.comb += self.funct3.eq(insn_decoder.funct3)
         m.d.comb += self.funct7.eq(insn_decoder.funct7)
+        m.d.comb += self.result_eqz.eq(alu.r == 0)
         m.d.comb += alu.alu_op.eq(self.alu_op)
         m.d.comb += regfile.rs1_addr.eq(insn_decoder.rs1)
         m.d.comb += regfile.rs2_addr.eq(insn_decoder.rs2)
@@ -92,9 +94,9 @@ class SingleCycleDataPath(Elaboratable):
 
         with m.Switch(self.alub_sel):
             with m.Case(AluBSel.RS2):
-                m.d.comb += alu.a.eq(regfile.rs2_data)
+                m.d.comb += alu.b.eq(regfile.rs2_data)
             with m.Case(AluBSel.IMM):
-                m.d.comb += alu.a.eq(imm_gen.imm)
+                m.d.comb += alu.b.eq(imm_gen.imm)
 
         with m.Switch(self.wb_sel):
             with m.Case(WbSel.ALU):

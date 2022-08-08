@@ -28,6 +28,6 @@ class RegFile(Elaboratable):
 
         m.d.comb += pd.addr.eq(self.rd_addr)
         m.d.comb += pd.data.eq(self.rd_data)
-        m.d.comb += pd.en.eq(self.we & self.rd_addr != 0)
+        m.d.comb += pd.en.eq(self.we & (self.rd_addr != 0))
 
         return m
