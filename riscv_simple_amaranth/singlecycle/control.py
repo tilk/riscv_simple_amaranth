@@ -15,7 +15,7 @@ class SingleCycleControl(Elaboratable):
         self.alua_sel = Signal(AluASel)
         self.alub_sel = Signal(AluBSel)
         self.alu_op_type = Signal(AluOpType)
-        self.mem_re = Signal()
+        self.mem_stb = Signal()
         self.mem_we = Signal()
         self.wb_sel = Signal(WbSel)
         self.pc_sel = Signal(PCSel)
@@ -54,9 +54,10 @@ class SingleCycleControl(Elaboratable):
             with m.Case(Opcode.LOAD):
                 use_alu(AluASel.RS1, AluBSel.IMM, AluOpType.ADD)
                 writeback(WbSel.DATA)
-                m.d.comb += self.mem_re.eq(1)
+                m.d.comb += self.mem_stb.eq(1)
             with m.Case(Opcode.STORE):
                 use_alu(AluASel.RS1, AluBSel.IMM, AluOpType.ADD)
+                m.d.comb += self.mem_stb.eq(1)
                 m.d.comb += self.mem_we.eq(1)
             with m.Case(Opcode.LUI):
                 writeback(WbSel.IMM)

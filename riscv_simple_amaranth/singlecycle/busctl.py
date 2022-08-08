@@ -6,8 +6,7 @@ class SingleCycleBusControl(Elaboratable):
     def __init__(self):
         self.insn_ack = Signal()
         self.mem_ack = Signal()
-        self.mem_re = Signal()
-        self.mem_we = Signal()
+        self.mem_stb = Signal()
 
         self.insn_we = Signal()
         self.pc_we = Signal()
@@ -19,7 +18,7 @@ class SingleCycleBusControl(Elaboratable):
 
         has_stored_inst = Signal()
 
-        m.d.comb += self.pc_we.eq(self.mem_ack | self.insn_ack & ~(self.mem_re | self.mem_we))
+        m.d.comb += self.pc_we.eq(self.mem_ack | self.insn_ack & ~self.mem_stb)
         m.d.comb += self.insn_stb.eq(~has_stored_inst)
 
         with m.If(has_stored_inst):
