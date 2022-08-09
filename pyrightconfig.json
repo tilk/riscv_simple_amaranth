@@ -1,4 +1,7 @@
 {
+  "include": [
+    "riscv_simple_amaranth"
+  ],
   "stubPath": "./stubs",
   "reportMissingImports": true,
   "reportMissingTypeStubs": false
