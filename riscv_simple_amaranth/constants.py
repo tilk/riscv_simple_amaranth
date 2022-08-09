@@ -43,3 +43,22 @@ class InsnSel(Enum):
     ZERO = 0
     INSN = 1
     IR = 2
+
+class AddrSel(Enum):
+    PC = 0
+    ALU_REG = 1
+
+class WbSelMC(Enum):
+    ALU_REG = 0
+    DATA    = 1
+    PC      = 2
+    IMM     = 3
+
+class PCSelMC(Enum):
+    ALU = 0
+    ALU_REG = 1
+
+class AluBSelMC(Enum):
+    RS2 = 0
+    IMM = 1
+    FOUR = 2
