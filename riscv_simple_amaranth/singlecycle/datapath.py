@@ -7,6 +7,7 @@ from ..regfile import RegFile
 from ..imm_gen import ImmGen
 from ..insn_decoder import InsnDecoder
 
+
 class SingleCycleDataPath(Elaboratable):
     def __init__(self, variant: ArchVariant):
         self.variant = variant
@@ -16,7 +17,7 @@ class SingleCycleDataPath(Elaboratable):
         self.funct3 = Signal(3)
         self.funct7 = Signal(7)
         self.result_eqz = Signal()
-        
+
         # Control signals
         self.insn_we = Signal()
         self.pc_we = Signal()

@@ -2,6 +2,7 @@ from amaranth import *
 from . import isa
 from .arch import ArchVariant
 
+
 class ImmGen(Elaboratable):
     def __init__(self, variant: ArchVariant):
         self.insn = Signal(isa.INSN_BITS)
@@ -22,6 +23,8 @@ class ImmGen(Elaboratable):
             with m.Case(isa.Opcode.AUIPC, isa.Opcode.LUI):
                 m.d.comb += self.imm.eq(Cat(C(0, 12), insn[12:20], insn[20:32]).as_signed())
             with m.Case(isa.Opcode.JAL):
-                m.d.comb += self.imm.eq(Cat(C(0, 1), insn[21:25], insn[25:31], insn[20], insn[12:20], insn[31]).as_signed())
+                m.d.comb += self.imm.eq(
+                    Cat(C(0, 1), insn[21:25], insn[25:31], insn[20], insn[12:20], insn[31]).as_signed()
+                )
 
         return m

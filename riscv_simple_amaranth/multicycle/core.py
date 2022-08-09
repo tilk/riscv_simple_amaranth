@@ -5,19 +5,19 @@ from .ctlpath import MultiCycleControlPath
 from .datapath import MultiCycleDataPath
 from ..wb_data import WishboneData
 
+
 class MultiCycleCore(Elaboratable):
     def __init__(self, variant: ArchVariant):
         self.variant = variant
-        
+
         self.mem_adr_o = Signal(variant.BIT_WIDTH - variant.BYTE_WIDTH_BITS)
         self.mem_dat_i = Signal(variant.BIT_WIDTH)
         self.mem_dat_o = Signal(variant.BIT_WIDTH)
-        self.mem_we_o  = Signal()
+        self.mem_we_o = Signal()
         self.mem_sel_o = Signal(variant.BYTE_WIDTH)
         self.mem_stb_o = Signal()
         self.mem_cyc_o = Signal()
         self.mem_ack_i = Signal()
-
 
     def elaborate(self, platform):
         m = Module()

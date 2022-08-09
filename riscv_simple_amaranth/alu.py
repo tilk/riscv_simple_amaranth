@@ -2,6 +2,7 @@ from amaranth import *
 from .constants import AluOp
 from .arch import ArchVariant
 
+
 class Alu(Elaboratable):
     def __init__(self, variant: ArchVariant):
         self.alu_op = Signal(AluOp)

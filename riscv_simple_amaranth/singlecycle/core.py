@@ -5,14 +5,15 @@ from .ctlpath import SingleCycleControlPath
 from .datapath import SingleCycleDataPath
 from ..wb_data import WishboneData
 
+
 class SingleCycleCore(Elaboratable):
     def __init__(self, variant: ArchVariant):
         self.variant = variant
-        
+
         self.mem_adr_o = Signal(variant.BIT_WIDTH - variant.BYTE_WIDTH_BITS)
         self.mem_dat_i = Signal(variant.BIT_WIDTH)
         self.mem_dat_o = Signal(variant.BIT_WIDTH)
-        self.mem_we_o  = Signal()
+        self.mem_we_o = Signal()
         self.mem_sel_o = Signal(variant.BYTE_WIDTH)
         self.mem_stb_o = Signal()
         self.mem_cyc_o = Signal()
@@ -23,7 +24,6 @@ class SingleCycleCore(Elaboratable):
         self.insn_stb_o = Signal()
         self.insn_cyc_o = Signal()
         self.insn_ack_i = Signal()
-
 
     def elaborate(self, platform):
         m = Module()
@@ -62,7 +62,7 @@ class SingleCycleCore(Elaboratable):
         m.d.comb += self.mem_cyc_o.eq(ctl.mem_stb)
         m.d.comb += data_iface.wb_dat_i.eq(self.mem_dat_i)
 
-        m.d.comb += self.insn_adr_o.eq(data.pc[2:self.variant.BIT_WIDTH])
+        m.d.comb += self.insn_adr_o.eq(data.pc[2 : self.variant.BIT_WIDTH])
         m.d.comb += self.insn_stb_o.eq(ctl.insn_stb)
         m.d.comb += self.insn_cyc_o.eq(ctl.insn_stb)
 

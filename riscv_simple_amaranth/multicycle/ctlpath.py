@@ -5,6 +5,7 @@ from ..branchctl import BranchControl
 from ..aluctl import AluControl
 from .control import MultiCycleControl
 
+
 class MultiCycleControlPath(Elaboratable):
     def __init__(self):
         self.opcode = Signal(isa.OPCODE_BITS)
@@ -57,6 +58,5 @@ class MultiCycleControlPath(Elaboratable):
         m.d.comb += self.mem_we.eq(control.mem_we)
         m.d.comb += self.wb_sel.eq(control.wb_sel)
         m.d.comb += self.pc_sel.eq(control.pc_sel)
-
 
         return m

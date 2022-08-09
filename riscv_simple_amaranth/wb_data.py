@@ -21,10 +21,10 @@ class WishboneData(Elaboratable):
         m = Module()
 
         sel_mask = Signal(self.variant.BYTE_WIDTH)
-        byte_off = self.mem_addr[0:self.variant.BYTE_WIDTH_BITS]
+        byte_off = self.mem_addr[0 : self.variant.BYTE_WIDTH_BITS]
         bit_off = byte_off << 3
         rdata_shifted = self.wb_dat_i >> bit_off
-        
+
         m.d.comb += self.wb_adr_o.eq(self.mem_addr >> self.variant.BYTE_WIDTH_BITS)
         m.d.comb += self.wb_sel_o.eq(sel_mask << byte_off)
         m.d.comb += self.wb_dat_o.eq(self.mem_wdata << bit_off)
@@ -32,10 +32,11 @@ class WishboneData(Elaboratable):
         with m.Switch(self.mem_funct3[0:2]):
             for i in range(self.variant.BYTE_WIDTH_BITS + 1):
                 with m.Case(i):
-                    m.d.comb += sel_mask.eq(2 ** (2 ** i) - 1)
-                    bit_width = 8 * (2 ** i)
+                    m.d.comb += sel_mask.eq(2 ** (2**i) - 1)
+                    bit_width = 8 * (2**i)
                     sign_bit = rdata_shifted[bit_width - 1] & ~self.mem_funct3[2]
-                    m.d.comb += self.mem_rdata.eq(Cat(rdata_shifted[0:bit_width], Repl(sign_bit, self.variant.BIT_WIDTH - bit_width)))
+                    m.d.comb += self.mem_rdata.eq(
+                        Cat(rdata_shifted[0:bit_width], Repl(sign_bit, self.variant.BIT_WIDTH - bit_width))
+                    )
 
         return m
-

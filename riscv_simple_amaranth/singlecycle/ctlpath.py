@@ -6,6 +6,7 @@ from ..aluctl import AluControl
 from .control import SingleCycleControl
 from .busctl import SingleCycleBusControl
 
+
 class SingleCycleControlPath(Elaboratable):
     def __init__(self):
         self.opcode = Signal(isa.OPCODE_BITS)

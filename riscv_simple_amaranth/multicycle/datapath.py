@@ -7,6 +7,7 @@ from ..regfile import RegFile
 from ..imm_gen import ImmGen
 from ..insn_decoder import InsnDecoder
 
+
 class MultiCycleDataPath(Elaboratable):
     def __init__(self, variant: ArchVariant):
         self.variant = variant

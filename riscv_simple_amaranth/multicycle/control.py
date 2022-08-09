@@ -46,7 +46,7 @@ class MultiCycleControl(Elaboratable):
             m.d.comb += self.pc_we.eq(1)
             m.d.comb += self.pc_sel.eq(pc_sel)
 
-        with m.FSM() as fsm:
+        with m.FSM():
             with m.State("FETCH"):
                 use_mem(AddrSel.PC, False)
                 with m.If(self.mem_ack):
@@ -120,4 +120,3 @@ class MultiCycleControl(Elaboratable):
                 m.next = "FETCH"
 
         return m
-

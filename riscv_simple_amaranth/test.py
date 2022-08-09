@@ -9,14 +9,14 @@ import glob
 
 
 def hex_read(ih, addr):
-    return ih[addr] | (ih[addr+1] << 8) | (ih[addr+2] << 16) | (ih[addr+3] << 24)
+    return ih[addr] | (ih[addr + 1] << 8) | (ih[addr + 2] << 16) | (ih[addr + 3] << 24)
 
 
 def hex_write(ih, addr, value):
-    ih[addr] = value & 0xff
-    ih[addr+1] = (value >> 8) & 0xff
-    ih[addr+2] = (value >> 16) & 0xff
-    ih[addr+3] = (value >> 24) & 0xff
+    ih[addr] = value & 0xFF
+    ih[addr + 1] = (value >> 8) & 0xFF
+    ih[addr + 2] = (value >> 16) & 0xFF
+    ih[addr + 3] = (value >> 24) & 0xFF
 
 
 def load_tests(loader, tests, pattern):
@@ -27,9 +27,10 @@ def load_tests(loader, tests, pattern):
             self.testid = testid
             self.text = text
             self.data = data
-    
+
         def text_memory(self, module, text):
             ih = IntelHex(text)
+
             def gen():
                 yield Passive()
                 while True:
@@ -49,10 +50,12 @@ def load_tests(loader, tests, pattern):
                     else:
                         yield module.insn_ack_i.eq(0)
                     yield
+
             return gen
-            
+
         def data_memory(self, module, data):
             ih = IntelHex(data)
+
             def gen():
                 yield Active()
                 while True:
@@ -70,7 +73,7 @@ def load_tests(loader, tests, pattern):
                             dat = yield module.mem_dat_o
                             hex_write(ih, addr_off, dat)
                             print("DATA WRITE: %.8x %.8x" % (addr, dat))
-                            if adr << 2 == 0xfffffff0:
+                            if adr << 2 == 0xFFFFFFF0:
                                 self.assertEqual(dat, 1)
                                 yield Passive()
                         else:
@@ -81,8 +84,9 @@ def load_tests(loader, tests, pattern):
                     else:
                         yield module.mem_ack_i.eq(0)
                     yield
+
             return gen
-    
+
         def runTest(self):
             print(self.testid)
             sim = Simulator(self.module)
@@ -94,7 +98,7 @@ def load_tests(loader, tests, pattern):
 
         def id(self):
             return self.testid
-    
+
     class TestRunnerVN(unittest.TestCase):
         def __init__(self, module, testid, text, data):
             super().__init__()
@@ -102,9 +106,10 @@ def load_tests(loader, tests, pattern):
             self.testid = testid
             self.text = text
             self.data = data
-    
+
         def text_memory(self, module, text):
             ih = IntelHex(text)
+
             def gen():
                 yield Passive()
                 while True:
@@ -124,11 +129,13 @@ def load_tests(loader, tests, pattern):
                     else:
                         yield module.insn_ack_i.eq(0)
                     yield
+
             return gen
-            
+
         def memory(self, module, text, data):
             ih_text = IntelHex(text)
             ih_data = IntelHex(data)
+
             def gen():
                 yield Active()
                 while True:
@@ -152,7 +159,7 @@ def load_tests(loader, tests, pattern):
                             hex_write(ih, addr_off, dat)
                             print("DATA WRITE: %.8x %.8x" % (addr, dat))
                             self.assertIs(ih, ih_data)
-                            if adr << 2 == 0xfffffff0:
+                            if adr << 2 == 0xFFFFFFF0:
                                 self.assertEqual(dat, 1)
                                 yield Passive()
                         else:
@@ -163,8 +170,9 @@ def load_tests(loader, tests, pattern):
                     else:
                         yield module.mem_ack_i.eq(0)
                     yield
+
             return gen
-    
+
         def runTest(self):
             print(self.testid)
             sim = Simulator(self.module)
@@ -175,7 +183,6 @@ def load_tests(loader, tests, pattern):
 
         def id(self):
             return self.testid
-
 
     core = SingleCycleCore(RV32I())
     suite = unittest.TestSuite()
