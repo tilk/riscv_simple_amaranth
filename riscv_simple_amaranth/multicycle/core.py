@@ -41,11 +41,11 @@ class MultiCycleCore(Elaboratable):
         m.d.comb += data.alu_op.eq(ctl.alu_op)
         m.d.comb += data.wb_sel.eq(ctl.wb_sel)
         m.d.comb += data.pc_sel.eq(ctl.pc_sel)
-        m.d.comb += data.addr_sel.eq(ctl.data_sel)
+        m.d.comb += data.addr_sel.eq(ctl.addr_sel)
 
         m.d.comb += data_iface.mem_addr.eq(data.mem_addr)
         m.d.comb += data_iface.mem_wdata.eq(data.mem_wdata)
-        m.d.comb += data_iface.mem_funct3.eq(data.funct3)
+        m.d.comb += data_iface.mem_funct3.eq(Mux(ctl.insn_we, isa.Funct3Mem.WORD, data.funct3))
         m.d.comb += data.mem_rdata.eq(data_iface.mem_rdata)
 
         m.d.comb += self.mem_adr_o.eq(data_iface.wb_adr_o)

@@ -113,6 +113,6 @@ class MultiCycleDataPath(Elaboratable):
             with m.Case(PCSelMC.ALU_REG):
                 m.d.comb += next_pc.eq(alu_reg)
             with m.Case(PCSelMC.ALU):
-                m.d.comb += next_pc.eq(alu)
+                m.d.comb += next_pc.eq(alu.r)
 
         return m

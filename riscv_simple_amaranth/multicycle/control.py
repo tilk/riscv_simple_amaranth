@@ -32,7 +32,12 @@ class MultiCycleControl(Elaboratable):
             m.d.comb += self.alua_sel.eq(alua_sel)
             m.d.comb += self.alub_sel.eq(alub_sel)
             m.d.comb += self.alu_op_type.eq(alu_op_type)
- 
+
+        def use_mem(addr_sel: AddrSel, mem_we: bool):
+            m.d.comb += self.mem_stb.eq(1)
+            m.d.comb += self.mem_we.eq(mem_we)
+            m.d.comb += self.addr_sel.eq(addr_sel)
+
         def writeback(wb_sel: WbSelMC):
             m.d.comb += self.reg_we.eq(1)
             m.d.comb += self.wb_sel.eq(wb_sel)
@@ -43,6 +48,7 @@ class MultiCycleControl(Elaboratable):
 
         with m.FSM() as fsm:
             with m.State("FETCH"):
+                use_mem(AddrSel.PC, False)
                 with m.If(self.mem_ack):
                     use_alu(AluASel.PC, AluBSelMC.FOUR, AluOpType.ADD)
                     m.d.comb += self.insn_we.eq(1)
@@ -96,12 +102,12 @@ class MultiCycleControl(Elaboratable):
                     with m.Case(Opcode.STORE):
                         m.next = "MEM_WRITE"
             with m.State("MEM_READ"):
+                use_mem(AddrSel.ALU_REG, False)
                 with m.If(self.mem_ack):
                     m.d.comb += self.data_we.eq(1)
                     m.next = "MEM_WB"
             with m.State("MEM_WRITE"):
-                m.d.comb += self.mem_stb.eq(1)
-                m.d.comb += self.mem_we.eq(1)
+                use_mem(AddrSel.ALU_REG, True)
                 with m.If(self.mem_ack):
                     m.next = "FETCH"
             with m.State("MEM_WB"):
