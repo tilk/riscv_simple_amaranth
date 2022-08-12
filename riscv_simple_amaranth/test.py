@@ -6,6 +6,10 @@ from .multicycle.core import MultiCycleCore
 from intelhex import IntelHex
 import unittest
 import glob
+import random
+
+
+MAX_WAIT_CYCLES = 2
 
 
 def hex_read(ih, addr):
@@ -45,6 +49,9 @@ def load_tests(loader, tests, pattern):
                         self.assertLess(addr, 0x80000000)
                         dat = hex_read(ih, addr_off)
                         print("INSN: %.8x %.8x" % (addr, dat))
+                        for _ in range(random.randint(0, MAX_WAIT_CYCLES)):
+                            yield module.insn_ack_i.eq(0)
+                            yield
                         yield module.insn_dat_i.eq(dat)
                         yield module.insn_ack_i.eq(1)
                     else:
@@ -80,6 +87,9 @@ def load_tests(loader, tests, pattern):
                             dat = hex_read(ih, addr_off)
                             print("DATA READ: %.8x %.8x" % (addr, dat))
                             yield module.mem_dat_i.eq(dat)
+                        for _ in range(random.randint(0, MAX_WAIT_CYCLES)):
+                            yield module.mem_ack_i.eq(0)
+                            yield
                         yield module.mem_ack_i.eq(1)
                     else:
                         yield module.mem_ack_i.eq(0)
@@ -106,31 +116,6 @@ def load_tests(loader, tests, pattern):
             self.testid = testid
             self.text = text
             self.data = data
-
-        def text_memory(self, module, text):
-            ih = IntelHex(text)
-
-            def gen():
-                yield Passive()
-                while True:
-                    yield Settle()
-                    stb = yield module.insn_stb_o
-                    cyc = yield module.insn_cyc_o
-                    if stb and cyc:
-                        adr = yield module.insn_adr_o
-                        addr = adr << 2
-                        addr_off = addr - 0x400000
-                        self.assertGreaterEqual(addr, 0x400000)
-                        self.assertLess(addr, 0x80000000)
-                        dat = hex_read(ih, addr_off)
-                        print("INSN: %.8x %.8x" % (addr, dat))
-                        yield module.insn_dat_i.eq(dat)
-                        yield module.insn_ack_i.eq(1)
-                    else:
-                        yield module.insn_ack_i.eq(0)
-                    yield
-
-            return gen
 
         def memory(self, module, text, data):
             ih_text = IntelHex(text)
@@ -166,6 +151,9 @@ def load_tests(loader, tests, pattern):
                             dat = hex_read(ih, addr_off)
                             print("DATA READ: %.8x %.8x" % (addr, dat))
                             yield module.mem_dat_i.eq(dat)
+                        for _ in range(random.randint(0, MAX_WAIT_CYCLES)):
+                            yield module.mem_ack_i.eq(0)
+                            yield
                         yield module.mem_ack_i.eq(1)
                     else:
                         yield module.mem_ack_i.eq(0)

@@ -3,6 +3,7 @@ from ..arch import ArchVariant
 from .. import isa
 from .ctlpath import SingleCycleControlPath
 from .datapath import SingleCycleDataPath
+from ..busbuffer import BusBuffer
 from ..wb_data import WishboneData
 
 
@@ -31,15 +32,15 @@ class SingleCycleCore(Elaboratable):
         m.submodules.ctl = ctl = SingleCycleControlPath()
         m.submodules.data = data = SingleCycleDataPath(self.variant)
         m.submodules.data_iface = data_iface = WishboneData(self.variant)
+        m.submodules.bbinsn = bbinsn = BusBuffer(isa.INSN_BITS)
 
         m.d.comb += ctl.opcode.eq(data.opcode)
         m.d.comb += ctl.funct3.eq(data.funct3)
         m.d.comb += ctl.funct7.eq(data.funct7)
         m.d.comb += ctl.result_eqz.eq(data.result_eqz)
-        m.d.comb += ctl.insn_ack.eq(self.insn_ack_i)
+        m.d.comb += ctl.insn_valid.eq(bbinsn.valid)
         m.d.comb += ctl.mem_ack.eq(self.mem_ack_i)
-        m.d.comb += data.insn.eq(self.insn_dat_i)
-        m.d.comb += data.insn_we.eq(ctl.insn_we)
+        m.d.comb += data.insn.eq(bbinsn.data_buf)
         m.d.comb += data.pc_we.eq(ctl.pc_we)
         m.d.comb += data.reg_we.eq(ctl.reg_we)
         m.d.comb += data.alua_sel.eq(ctl.alua_sel)
@@ -47,7 +48,6 @@ class SingleCycleCore(Elaboratable):
         m.d.comb += data.alu_op.eq(ctl.alu_op)
         m.d.comb += data.wb_sel.eq(ctl.wb_sel)
         m.d.comb += data.pc_sel.eq(ctl.pc_sel)
-        m.d.comb += data.insn_sel.eq(ctl.insn_sel)
 
         m.d.comb += data_iface.mem_addr.eq(data.mem_addr)
         m.d.comb += data_iface.mem_wdata.eq(data.mem_wdata)
@@ -62,8 +62,12 @@ class SingleCycleCore(Elaboratable):
         m.d.comb += self.mem_cyc_o.eq(ctl.mem_stb)
         m.d.comb += data_iface.wb_dat_i.eq(self.mem_dat_i)
 
+        m.d.comb += bbinsn.data.eq(self.insn_dat_i)
+        m.d.comb += bbinsn.reset.eq(ctl.pc_we)
+        m.d.comb += bbinsn.request.eq(1)
+        m.d.comb += bbinsn.ack.eq(self.insn_ack_i)
         m.d.comb += self.insn_adr_o.eq(data.pc[2 : self.variant.BIT_WIDTH])
-        m.d.comb += self.insn_stb_o.eq(ctl.insn_stb)
-        m.d.comb += self.insn_cyc_o.eq(ctl.insn_stb)
+        m.d.comb += self.insn_stb_o.eq(bbinsn.stb)
+        m.d.comb += self.insn_cyc_o.eq(bbinsn.stb)
 
         return m

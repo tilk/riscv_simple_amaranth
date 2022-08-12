@@ -1,6 +1,6 @@
 from amaranth import *
 from .. import isa
-from ..constants import AluASel, AluBSel, WbSel, AluOp, PCSel, InsnSel
+from ..constants import AluASel, AluBSel, WbSel, AluOp, PCSel
 from ..arch import ArchVariant
 from ..alu import Alu
 from ..regfile import RegFile
@@ -19,10 +19,8 @@ class SingleCycleDataPath(Elaboratable):
         self.result_eqz = Signal()
 
         # Control signals
-        self.insn_we = Signal()
         self.pc_we = Signal()
         self.reg_we = Signal()
-        self.insn_sel = Signal(InsnSel)
         self.alua_sel = Signal(AluASel)
         self.alub_sel = Signal(AluBSel)
         self.alu_op = Signal(AluOp)
@@ -46,20 +44,8 @@ class SingleCycleDataPath(Elaboratable):
         m.submodules.regfile = regfile = RegFile(self.variant)
         m.submodules.imm_gen = imm_gen = ImmGen(self.variant)
 
-        insn_reg = Signal.like(self.insn)
-        insn = Signal.like(self.insn)
-
-        with m.Switch(self.insn_sel):
-            with m.Case(InsnSel.INSN):
-                m.d.comb += insn.eq(self.insn)
-            with m.Case(InsnSel.IR):
-                m.d.comb += insn.eq(insn_reg)
-
-        with m.If(self.insn_we):
-            m.d.sync += insn_reg.eq(self.insn)
-
-        m.d.comb += insn_decoder.insn.eq(insn)
-        m.d.comb += imm_gen.insn.eq(insn)
+        m.d.comb += insn_decoder.insn.eq(self.insn)
+        m.d.comb += imm_gen.insn.eq(self.insn)
         m.d.comb += self.opcode.eq(insn_decoder.opcode)
         m.d.comb += self.funct3.eq(insn_decoder.funct3)
         m.d.comb += self.funct7.eq(insn_decoder.funct7)
