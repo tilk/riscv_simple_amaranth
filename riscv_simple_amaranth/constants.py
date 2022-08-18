@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class AluOp(Enum):
+    NONE = 0
     ADD = 1
     SUB = 2
     SLL = 3
