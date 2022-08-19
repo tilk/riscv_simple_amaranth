@@ -43,7 +43,7 @@ class PipelineControlPath(Elaboratable, WithPipeline):
         m.submodules.control = control = PipelineControl()
         m.submodules.exec_control = exec_control = PipelineExecControl()
 
-        jump_type = self.pipeline_signal(m, Stage.ID, Stage.EX, control.jump_type, bubble_value = JumpType.NONE)
+        jump_type = self.pipeline_signal(m, Stage.ID, Stage.EX, control.jump_type, bubble_value=JumpType.NONE)
 
         m.d.comb += branch_control.funct3.eq(self.ex_funct3)
         m.d.comb += branch_control.result_eqz.eq(self.result_eqz)

@@ -174,7 +174,11 @@ def load_tests(loader, tests, pattern):
             return self.testid
 
     suite = unittest.TestSuite()
-    for (corename, core, runner) in [("singlecycle", SingleCycleCore(RV32I()), TestRunner), ("multicycle", MultiCycleCore(RV32I()), TestRunnerVN), ("pipeline", PipelineCore(RV32I()), TestRunner)]:
+    for (corename, core, runner) in [
+        ("singlecycle", SingleCycleCore(RV32I()), TestRunner),
+        ("multicycle", MultiCycleCore(RV32I()), TestRunnerVN),
+        ("pipeline", PipelineCore(RV32I()), TestRunner),
+    ]:
         for name in glob.glob("tests/*.text.hex"):
             dname = name.replace("text", "data")
             testid = name[6:-9]

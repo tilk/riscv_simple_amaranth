@@ -1,7 +1,7 @@
 from amaranth import *
 from enum import IntEnum
-  
-  
+
+
 class Stage(IntEnum):
     IF = 0
     ID = 1
@@ -15,14 +15,14 @@ class WithPipeline:
     insn_kill: Signal
     step: Signal
 
-    def pipeline_signal(self, m: Module, start: Stage, end: Stage, init, *, bubble_value = None) -> dict[Stage, Signal]:
+    def pipeline_signal(self, m: Module, start: Stage, end: Stage, init, *, bubble_value=None) -> dict[Stage, Signal]:
         d: dict[Stage, Signal] = {}
         for s in range(start, end + 1):
-            d[Stage(s)] = Signal.like(init, name = init.name + str(Stage(s)))
+            d[Stage(s)] = Signal.like(init, name=init.name + str(Stage(s)))
         m.d.comb += d[start].eq(init)
         with m.If(self.step):
             for s in range(start, end):
-                m.d.sync += d[Stage(s+1)].eq(d[Stage(s)])
+                m.d.sync += d[Stage(s + 1)].eq(d[Stage(s)])
             if bubble_value is not None:
                 if Stage.EX in d:
                     with m.If(self.stall):
@@ -31,4 +31,3 @@ class WithPipeline:
                 with m.If(self.stall & ~self.insn_kill):
                     m.d.sync += d[Stage.ID].eq(d[Stage.ID])
         return d
-

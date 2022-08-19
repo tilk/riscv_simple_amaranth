@@ -51,7 +51,7 @@ class PipelineDataPath(Elaboratable, WithPipeline):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.insn_decoder = insn_decoder = InsnDecoder()                                                                                           
+        m.submodules.insn_decoder = insn_decoder = InsnDecoder()
         m.submodules.alu = alu = Alu(self.variant)
         m.submodules.regfile = regfile = RegFile(self.variant)
         m.submodules.imm_gen = imm_gen = ImmGen(self.variant)
@@ -66,12 +66,12 @@ class PipelineDataPath(Elaboratable, WithPipeline):
         insn = self.pipeline_signal(m, Stage.IF, Stage.ID, insn)
         pc = self.pipeline_signal(m, Stage.IF, Stage.EX, self.pc)
         mem_rdata = self.pipeline_signal(m, Stage.MEM, Stage.WB, self.mem_rdata)
-        reg_we = self.pipeline_signal(m, Stage.ID, Stage.WB, self.reg_we, bubble_value = 0)
+        reg_we = self.pipeline_signal(m, Stage.ID, Stage.WB, self.reg_we, bubble_value=0)
         alua_sel = self.pipeline_signal(m, Stage.ID, Stage.EX, self.alua_sel)
         alub_sel = self.pipeline_signal(m, Stage.ID, Stage.EX, self.alub_sel)
-        alu_op = self.pipeline_signal(m, Stage.ID, Stage.EX, self.alu_op, bubble_value = AluOp.NONE)
-        mem_stb = self.pipeline_signal(m, Stage.ID, Stage.MEM, self.ctl_mem_stb, bubble_value = 0)
-        mem_we = self.pipeline_signal(m, Stage.ID, Stage.MEM, self.ctl_mem_we, bubble_value = 0)
+        alu_op = self.pipeline_signal(m, Stage.ID, Stage.EX, self.alu_op, bubble_value=AluOp.NONE)
+        mem_stb = self.pipeline_signal(m, Stage.ID, Stage.MEM, self.ctl_mem_stb, bubble_value=0)
+        mem_we = self.pipeline_signal(m, Stage.ID, Stage.MEM, self.ctl_mem_we, bubble_value=0)
         mem_funct3 = self.pipeline_signal(m, Stage.ID, Stage.MEM, self.funct3)
         wb_sel = self.pipeline_signal(m, Stage.ID, Stage.WB, self.wb_sel)
         rs1_data = self.pipeline_signal(m, Stage.ID, Stage.EX, regfile.rs1_data)
@@ -139,11 +139,15 @@ class PipelineDataPath(Elaboratable, WithPipeline):
             with m.Case(WbSel.DATA):
                 m.d.comb += regfile.rd_data.eq(mem_rdata[Stage.WB])
 
-        want_stall = Cat(reg_we[s] & (alu_op[Stage.ID] != AluOp.NONE) & (rd[s] != 0) & (rd[s] == rs) & cond
-                for s in [Stage.EX, Stage.MEM, Stage.WB]
-                for (rs, cond) in [(insn_decoder.rs1, alua_sel[Stage.ID] == AluASel.RS1),
-                                   (insn_decoder.rs2, alub_sel[Stage.ID] == AluBSel.RS2),
-                                   (insn_decoder.rs2, mem_stb[Stage.ID] & mem_we[Stage.ID])]).any()
+        want_stall = Cat(
+            reg_we[s] & (alu_op[Stage.ID] != AluOp.NONE) & (rd[s] != 0) & (rd[s] == rs) & cond
+            for s in [Stage.EX, Stage.MEM, Stage.WB]
+            for (rs, cond) in [
+                (insn_decoder.rs1, alua_sel[Stage.ID] == AluASel.RS1),
+                (insn_decoder.rs2, alub_sel[Stage.ID] == AluBSel.RS2),
+                (insn_decoder.rs2, mem_stb[Stage.ID] & mem_we[Stage.ID]),
+            ]
+        ).any()
 
         m.d.comb += self.want_stall.eq(want_stall)
 
