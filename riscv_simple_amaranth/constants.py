@@ -74,3 +74,10 @@ class AluBSelMC(Enum):
     RS2 = 0
     IMM = 1
     FOUR = 2
+
+
+class JumpType(Enum):
+    NONE = 0
+    BRANCH = 1
+    JAL = 2
+    JALR = 3

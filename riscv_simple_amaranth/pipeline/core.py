@@ -39,6 +39,7 @@ class PipelineCore(Elaboratable):
         m.d.comb += ctl.funct3.eq(data.funct3)
         m.d.comb += ctl.funct7.eq(data.funct7)
         m.d.comb += ctl.result_eqz.eq(data.result_eqz)
+        m.d.comb += ctl.ex_funct3.eq(data.ex_funct3)
         m.d.comb += ctl.want_stall.eq(data.want_stall)
         m.d.comb += ctl.insn_valid.eq(bbinsn.valid)
         m.d.comb += ctl.mem_valid.eq(bbdata.valid)
@@ -56,6 +57,7 @@ class PipelineCore(Elaboratable):
         m.d.comb += data.ctl_mem_we.eq(ctl.mem_we)
         m.d.comb += data.step.eq(ctl.step)
         m.d.comb += data.stall.eq(ctl.stall)
+        m.d.comb += data.insn_kill.eq(ctl.insn_kill)
 
         m.d.comb += data_iface.mem_addr.eq(data.mem_addr)
         m.d.comb += data_iface.mem_wdata.eq(data.mem_wdata)

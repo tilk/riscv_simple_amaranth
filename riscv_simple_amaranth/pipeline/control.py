@@ -1,13 +1,14 @@
 from amaranth import *
 from .. import isa
 from ..isa import Opcode
-from ..constants import AluASel, AluBSel, AluOpType, PCSel, WbSel
+from ..constants import AluASel, AluBSel, AluOpType, PCSel, WbSel, JumpType
 
 
 class PipelineControl(Elaboratable):
     def __init__(self):
-        self.opcode = Signal(isa.OPCODE_BITS)
+        self.opcode = Signal(Opcode)
         self.take_branch = Signal()
+        self.jump_type = Signal(JumpType)
 
         self.reg_we = Signal()
         self.alua_sel = Signal(AluASel)
@@ -17,6 +18,8 @@ class PipelineControl(Elaboratable):
         self.mem_we = Signal()
         self.wb_sel = Signal(WbSel)
         self.pc_sel = Signal(PCSel)
+        self.do_jump = Signal()
+        self.jump_type_ex = Signal(JumpType)
 
     def elaborate(self, platform):
         m = Module()
@@ -30,6 +33,10 @@ class PipelineControl(Elaboratable):
             m.d.comb += self.reg_we.eq(1)
             m.d.comb += self.wb_sel.eq(wb_sel)
 
+        def jump(pc_sel: PCSel):
+            m.d.comb += self.do_jump.eq(1)
+            m.d.comb += self.pc_sel.eq(pc_sel)
+
         with m.Switch(self.opcode):
             with m.Case(Opcode.OP):
                 use_alu(AluASel.RS1, AluBSel.RS2, AluOpType.OP)
@@ -39,16 +46,15 @@ class PipelineControl(Elaboratable):
                 writeback(WbSel.ALU)
             with m.Case(Opcode.BRANCH):
                 use_alu(AluASel.RS1, AluBSel.RS2, AluOpType.BRANCH)
-                with m.If(self.take_branch):
-                    m.d.comb += self.pc_sel.eq(PCSel.PC_IMM)
+                m.d.comb += self.jump_type.eq(JumpType.BRANCH)
             with m.Case(Opcode.JAL):
                 use_alu(AluASel.PC, AluBSel.IMM, AluOpType.ADD)
                 writeback(WbSel.PC4)
-                m.d.comb += self.pc_sel.eq(PCSel.PC_IMM)
+                m.d.comb += self.jump_type.eq(JumpType.JAL)
             with m.Case(Opcode.JALR):
                 use_alu(AluASel.RS1, AluBSel.IMM, AluOpType.ADD)
                 writeback(WbSel.PC4)
-                m.d.comb += self.pc_sel.eq(PCSel.RS1_IMM)
+                m.d.comb += self.jump_type.eq(JumpType.JALR)
             with m.Case(Opcode.LOAD):
                 use_alu(AluASel.RS1, AluBSel.IMM, AluOpType.ADD)
                 writeback(WbSel.DATA)
@@ -62,5 +68,14 @@ class PipelineControl(Elaboratable):
             with m.Case(Opcode.AUIPC):
                 use_alu(AluASel.PC, AluBSel.IMM, AluOpType.ADD)
                 writeback(WbSel.ALU)
+
+        with m.Switch(self.jump_type_ex):
+            with m.Case(JumpType.BRANCH):
+                with m.If(self.take_branch):
+                    jump(PCSel.PC_IMM)
+            with m.Case(JumpType.JAL):
+                jump(PCSel.PC_IMM)
+            with m.Case(JumpType.JALR):
+                jump(PCSel.RS1_IMM)
 
         return m

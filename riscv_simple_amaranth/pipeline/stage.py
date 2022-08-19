@@ -8,3 +8,28 @@ class Stage(IntEnum):
     EX = 2
     MEM = 3
     WB = 4
+
+
+class WithPipeline:
+    stall: Signal
+    want_stall: Signal
+    insn_kill: Signal
+    step: Signal
+
+    def pipeline_signal(self, m: Module, start: Stage, end: Stage, init, *, bubble_value = None) -> dict[Stage, Signal]:
+        d: dict[Stage, Signal] = {}
+        for s in range(start, end + 1):
+            d[Stage(s)] = Signal.like(init, name = init.name + str(Stage(s)))
+        m.d.comb += d[start].eq(init)
+        with m.If(self.step):
+            for s in range(start, end):
+                m.d.sync += d[Stage(s+1)].eq(d[Stage(s)])
+            if bubble_value is not None:
+                if Stage.EX in d:
+                    with m.If(self.stall):
+                        m.d.sync += d[Stage.EX].eq(bubble_value)
+            if start == Stage.IF:
+                with m.If(self.want_stall & ~self.insn_kill):
+                    m.d.sync += d[Stage.ID].eq(d[Stage.ID])
+        return d
+
