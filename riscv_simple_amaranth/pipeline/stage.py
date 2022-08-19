@@ -12,7 +12,6 @@ class Stage(IntEnum):
 
 class WithPipeline:
     stall: Signal
-    want_stall: Signal
     insn_kill: Signal
     step: Signal
 
@@ -29,7 +28,7 @@ class WithPipeline:
                     with m.If(self.stall):
                         m.d.sync += d[Stage.EX].eq(bubble_value)
             if start == Stage.IF:
-                with m.If(self.want_stall & ~self.insn_kill):
+                with m.If(self.stall & ~self.insn_kill):
                     m.d.sync += d[Stage.ID].eq(d[Stage.ID])
         return d
 

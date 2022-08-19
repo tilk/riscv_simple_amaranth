@@ -1,6 +1,6 @@
 from amaranth import *
 from .. import isa
-from ..constants import AluASel, AluBSel, WbSel, AluOp, PCSel, InsnSel
+from ..constants import AluASel, AluBSel, WbSel, AluOp, PCSel
 from ..arch import ArchVariant
 from ..alu import Alu
 from ..regfile import RegFile
