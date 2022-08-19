@@ -3,6 +3,7 @@ from amaranth.sim import *
 from .arch import RV32I
 from .singlecycle.core import SingleCycleCore
 from .multicycle.core import MultiCycleCore
+from .pipeline.core import PipelineCore
 from intelhex import IntelHex
 import unittest
 import glob
@@ -166,17 +167,16 @@ def load_tests(loader, tests, pattern):
             sim = Simulator(self.module)
             sim.add_clock(1e-9)
             sim.add_sync_process(self.memory(self.module, self.text, self.data))
-            with sim.write_vcd("tests/%s_vn.vcd" % self.testid):
+            with sim.write_vcd("tests/%s.vcd" % self.testid):
                 sim.run()
 
         def id(self):
             return self.testid
 
-    core = SingleCycleCore(RV32I())
     suite = unittest.TestSuite()
-    for (core, runner) in [(SingleCycleCore(RV32I()), TestRunner), (MultiCycleCore(RV32I()), TestRunnerVN)]:
+    for (corename, core, runner) in [("singlecycle", SingleCycleCore(RV32I()), TestRunner), ("multicycle", MultiCycleCore(RV32I()), TestRunnerVN), ("pipeline", PipelineCore(RV32I()), TestRunner)]:
         for name in glob.glob("tests/*.text.hex"):
             dname = name.replace("text", "data")
             testid = name[6:-9]
-            suite.addTest(runner(core, testid, name, dname))
+            suite.addTest(runner(core, "%s_%s" % (testid, corename), name, dname))
     return suite
