@@ -8,6 +8,7 @@ from intelhex import IntelHex
 import unittest
 import glob
 import random
+import os
 
 
 MAX_WAIT_CYCLES = 2
@@ -22,6 +23,11 @@ def hex_write(ih, addr, value):
     ih[addr + 1] = (value >> 8) & 0xFF
     ih[addr + 2] = (value >> 16) & 0xFF
     ih[addr + 3] = (value >> 24) & 0xFF
+
+
+def debugprint(s):
+    if "MEM_DEBUG" in os.environ:
+        print(s)
 
 
 def load_tests(loader, tests, pattern):
@@ -49,7 +55,7 @@ def load_tests(loader, tests, pattern):
                         self.assertGreaterEqual(addr, 0x400000)
                         self.assertLess(addr, 0x80000000)
                         dat = hex_read(ih, addr_off)
-                        print("INSN: %.8x %.8x" % (addr, dat))
+                        debugprint("INSN: %.8x %.8x" % (addr, dat))
                         for _ in range(random.randint(0, MAX_WAIT_CYCLES)):
                             yield module.insn_ack_i.eq(0)
                             yield
@@ -80,13 +86,13 @@ def load_tests(loader, tests, pattern):
                         if we:
                             dat = yield module.mem_dat_o
                             hex_write(ih, addr_off, dat)
-                            print("DATA WRITE: %.8x %.8x" % (addr, dat))
+                            debugprint("DATA WRITE: %.8x %.8x" % (addr, dat))
                             if adr << 2 == 0xFFFFFFF0:
                                 self.assertEqual(dat, 1)
                                 yield Passive()
                         else:
                             dat = hex_read(ih, addr_off)
-                            print("DATA READ: %.8x %.8x" % (addr, dat))
+                            debugprint("DATA READ: %.8x %.8x" % (addr, dat))
                             yield module.mem_dat_i.eq(dat)
                         for _ in range(random.randint(0, MAX_WAIT_CYCLES)):
                             yield module.mem_ack_i.eq(0)
@@ -99,7 +105,7 @@ def load_tests(loader, tests, pattern):
             return gen
 
         def runTest(self):
-            print(self.testid)
+            debugprint(self.testid)
             sim = Simulator(self.module)
             sim.add_clock(1e-9)
             sim.add_sync_process(self.text_memory(self.module, self.text))
@@ -143,14 +149,14 @@ def load_tests(loader, tests, pattern):
                         if we:
                             dat = yield module.mem_dat_o
                             hex_write(ih, addr_off, dat)
-                            print("DATA WRITE: %.8x %.8x" % (addr, dat))
+                            debugprint("DATA WRITE: %.8x %.8x" % (addr, dat))
                             self.assertIs(ih, ih_data)
                             if adr << 2 == 0xFFFFFFF0:
                                 self.assertEqual(dat, 1)
                                 yield Passive()
                         else:
                             dat = hex_read(ih, addr_off)
-                            print("DATA READ: %.8x %.8x" % (addr, dat))
+                            debugprint("DATA READ: %.8x %.8x" % (addr, dat))
                             yield module.mem_dat_i.eq(dat)
                         for _ in range(random.randint(0, MAX_WAIT_CYCLES)):
                             yield module.mem_ack_i.eq(0)
@@ -163,7 +169,7 @@ def load_tests(loader, tests, pattern):
             return gen
 
         def runTest(self):
-            print(self.testid)
+            debugprint(self.testid)
             sim = Simulator(self.module)
             sim.add_clock(1e-9)
             sim.add_sync_process(self.memory(self.module, self.text, self.data))
