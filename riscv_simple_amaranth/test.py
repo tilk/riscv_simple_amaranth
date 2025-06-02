@@ -1,5 +1,6 @@
 from amaranth import *
 from amaranth.sim import *
+from amaranth.sim._async import TestbenchContext
 from .arch import RV32I
 from .singlecycle.core import SingleCycleCore
 from .multicycle.core import MultiCycleCore
@@ -42,13 +43,12 @@ def load_tests(loader, tests, pattern):
         def text_memory(self, module, text):
             ih = IntelHex(text)
 
-            def gen():
-                yield Passive()
+            async def gen(sim: TestbenchContext):
                 while True:
-                    stb = yield module.insn_stb_o
-                    cyc = yield module.insn_cyc_o
+                    stb = sim.get(module.insn_stb_o)
+                    cyc = sim.get(module.insn_cyc_o)
                     if stb and cyc:
-                        adr = yield module.insn_adr_o
+                        adr = sim.get(module.insn_adr_o)
                         addr = adr << 2
                         addr_off = addr - 0x400000
                         self.assertGreaterEqual(addr, 0x400000)
@@ -56,48 +56,47 @@ def load_tests(loader, tests, pattern):
                         dat = hex_read(ih, addr_off)
                         debugprint("INSN: %.8x %.8x" % (addr, dat))
                         for _ in range(random.randint(0, MAX_WAIT_CYCLES)):
-                            yield module.insn_ack_i.eq(0)
-                            yield Tick()
-                        yield module.insn_dat_i.eq(dat)
-                        yield module.insn_ack_i.eq(1)
+                            sim.set(module.insn_ack_i, 0)
+                            await sim.tick()
+                        sim.set(module.insn_dat_i, dat)
+                        sim.set(module.insn_ack_i, 1)
                     else:
-                        yield module.insn_ack_i.eq(0)
-                    yield Tick()
+                        sim.set(module.insn_ack_i, 0)
+                    await sim.tick()
 
             return gen
 
         def data_memory(self, module, data):
             ih = IntelHex(data)
 
-            def gen():
-                yield Active()
+            async def gen(sim: TestbenchContext):
                 while True:
-                    stb = yield module.mem_stb_o
-                    cyc = yield module.mem_cyc_o
+                    stb = sim.get(module.mem_stb_o)
+                    cyc = sim.get(module.mem_cyc_o)
                     if stb and cyc:
-                        adr = yield module.mem_adr_o
-                        we = yield module.mem_we_o
+                        adr = sim.get(module.mem_adr_o)
+                        we = sim.get(module.mem_we_o)
                         addr = adr << 2
                         addr_off = addr - 0x80000000
                         self.assertGreaterEqual(addr, 0x80000000)
                         if we:
-                            dat = yield module.mem_dat_o
+                            dat = sim.get(module.mem_dat_o)
                             hex_write(ih, addr_off, dat)
                             debugprint("DATA WRITE: %.8x %.8x" % (addr, dat))
                             if adr << 2 == 0xFFFFFFF0:
                                 self.assertEqual(dat, 1)
-                                yield Passive()
+                                return
                         else:
                             dat = hex_read(ih, addr_off)
                             debugprint("DATA READ: %.8x %.8x" % (addr, dat))
-                            yield module.mem_dat_i.eq(dat)
+                            sim.set(module.mem_dat_i, dat)
                         for _ in range(random.randint(0, MAX_WAIT_CYCLES)):
-                            yield module.mem_ack_i.eq(0)
-                            yield Tick()
-                        yield module.mem_ack_i.eq(1)
+                            sim.set(module.mem_ack_i, 0)
+                            await sim.tick()
+                        sim.set(module.mem_ack_i, 1)
                     else:
-                        yield module.mem_ack_i.eq(0)
-                    yield Tick()
+                        sim.set(module.mem_ack_i, 0)
+                    await sim.tick()
 
             return gen
 
@@ -105,7 +104,7 @@ def load_tests(loader, tests, pattern):
             debugprint(self.testid)
             sim = Simulator(self.module)
             sim.add_clock(1e-9)
-            sim.add_testbench(self.text_memory(self.module, self.text))
+            sim.add_testbench(self.text_memory(self.module, self.text), background=True)
             sim.add_testbench(self.data_memory(self.module, self.data))
             with sim.write_vcd("tests/%s.vcd" % self.testid):
                 sim.run()
@@ -125,14 +124,13 @@ def load_tests(loader, tests, pattern):
             ih_text = IntelHex(text)
             ih_data = IntelHex(data)
 
-            def gen():
-                yield Active()
+            async def gen(sim: TestbenchContext):
                 while True:
-                    stb = yield module.mem_stb_o
-                    cyc = yield module.mem_cyc_o
+                    stb = sim.get(module.mem_stb_o)
+                    cyc = sim.get(module.mem_cyc_o)
                     if stb and cyc:
-                        adr = yield module.mem_adr_o
-                        we = yield module.mem_we_o
+                        adr = sim.get(module.mem_adr_o)
+                        we = sim.get(module.mem_we_o)
                         addr = adr << 2
                         if addr >= 0x80000000:
                             ih = ih_data
@@ -142,24 +140,24 @@ def load_tests(loader, tests, pattern):
                             addr_off = addr - 0x400000
                             self.assertGreaterEqual(addr, 0x400000)
                         if we:
-                            dat = yield module.mem_dat_o
+                            dat = sim.get(module.mem_dat_o)
                             hex_write(ih, addr_off, dat)
                             debugprint("DATA WRITE: %.8x %.8x" % (addr, dat))
                             self.assertIs(ih, ih_data)
                             if adr << 2 == 0xFFFFFFF0:
                                 self.assertEqual(dat, 1)
-                                yield Passive()
+                                return
                         else:
                             dat = hex_read(ih, addr_off)
                             debugprint("DATA READ: %.8x %.8x" % (addr, dat))
-                            yield module.mem_dat_i.eq(dat)
+                            sim.set(module.mem_dat_i, dat)
                         for _ in range(random.randint(0, MAX_WAIT_CYCLES)):
-                            yield module.mem_ack_i.eq(0)
-                            yield Tick()
-                        yield module.mem_ack_i.eq(1)
+                            sim.set(module.mem_ack_i, 0)
+                            await sim.tick()
+                        sim.set(module.mem_ack_i, 1)
                     else:
-                        yield module.mem_ack_i.eq(0)
-                    yield Tick()
+                        sim.set(module.mem_ack_i, 0)
+                    await sim.tick()
 
             return gen
 
