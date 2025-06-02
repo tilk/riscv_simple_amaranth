@@ -45,7 +45,6 @@ def load_tests(loader, tests, pattern):
             def gen():
                 yield Passive()
                 while True:
-                    yield Settle()
                     stb = yield module.insn_stb_o
                     cyc = yield module.insn_cyc_o
                     if stb and cyc:
@@ -73,8 +72,6 @@ def load_tests(loader, tests, pattern):
             def gen():
                 yield Active()
                 while True:
-                    yield Settle()
-                    yield Settle()
                     stb = yield module.mem_stb_o
                     cyc = yield module.mem_cyc_o
                     if stb and cyc:
@@ -108,8 +105,8 @@ def load_tests(loader, tests, pattern):
             debugprint(self.testid)
             sim = Simulator(self.module)
             sim.add_clock(1e-9)
-            sim.add_process(self.text_memory(self.module, self.text))
-            sim.add_process(self.data_memory(self.module, self.data))
+            sim.add_testbench(self.text_memory(self.module, self.text))
+            sim.add_testbench(self.data_memory(self.module, self.data))
             with sim.write_vcd("tests/%s.vcd" % self.testid):
                 sim.run()
 
@@ -131,8 +128,6 @@ def load_tests(loader, tests, pattern):
             def gen():
                 yield Active()
                 while True:
-                    yield Settle()
-                    yield Settle()
                     stb = yield module.mem_stb_o
                     cyc = yield module.mem_cyc_o
                     if stb and cyc:
@@ -172,7 +167,7 @@ def load_tests(loader, tests, pattern):
             debugprint(self.testid)
             sim = Simulator(self.module)
             sim.add_clock(1e-9)
-            sim.add_process(self.memory(self.module, self.text, self.data))
+            sim.add_testbench(self.memory(self.module, self.text, self.data))
             with sim.write_vcd("tests/%s.vcd" % self.testid):
                 sim.run()
 
