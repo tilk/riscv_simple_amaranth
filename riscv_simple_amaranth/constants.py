@@ -1,4 +1,4 @@
-from enum import Enum
+from amaranth.lib.enum import Enum
 
 
 class AluOp(Enum):
