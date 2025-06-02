@@ -5,7 +5,6 @@ from ..arch import ArchVariant
 from ..alu import Alu
 from ..regfile import RegFile
 from ..imm_gen import ImmGen
-from ..insn_decoder import InsnDecoder
 from .stage import Stage, WithPipeline
 
 
@@ -38,7 +37,7 @@ class PipelineDataPath(Elaboratable, WithPipeline):
 
         # Program memory
         self.pc = Signal(variant.BIT_WIDTH, init=0x400000)
-        self.insn = Signal(isa.INSN_BITS)
+        self.insn = Signal(isa.Insn())
 
         # Data memory
         self.mem_addr = Signal(variant.BIT_WIDTH)
@@ -51,7 +50,6 @@ class PipelineDataPath(Elaboratable, WithPipeline):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.insn_decoder = insn_decoder = InsnDecoder()
         m.submodules.alu = alu = Alu(self.variant)
         m.submodules.regfile = regfile = RegFile(self.variant)
         m.submodules.imm_gen = imm_gen = ImmGen(self.variant)
@@ -60,6 +58,7 @@ class PipelineDataPath(Elaboratable, WithPipeline):
         pc_plus_4 = Signal.like(self.pc)
         pc_plus_imm = Signal.like(self.pc)
         insn = Signal.like(self.insn)
+        decoded_insn = Signal.like(self.insn)
 
         m.d.comb += insn.eq(Mux(self.insn_kill, 0, self.insn))
 
@@ -76,7 +75,7 @@ class PipelineDataPath(Elaboratable, WithPipeline):
         wb_sel = self.pipeline_signal(m, Stage.ID, Stage.WB, self.wb_sel)
         rs1_data = self.pipeline_signal(m, Stage.ID, Stage.EX, regfile.rs1_data)
         rs2_data = self.pipeline_signal(m, Stage.ID, Stage.MEM, regfile.rs2_data)
-        rd = self.pipeline_signal(m, Stage.ID, Stage.WB, insn_decoder.rd)
+        rd = self.pipeline_signal(m, Stage.ID, Stage.WB, decoded_insn.rd)
         imm = self.pipeline_signal(m, Stage.ID, Stage.WB, imm_gen.imm)
         alu_r = self.pipeline_signal(m, Stage.EX, Stage.WB, alu.r)
 
@@ -87,12 +86,12 @@ class PipelineDataPath(Elaboratable, WithPipeline):
         pc_plus_imm = self.pipeline_signal(m, Stage.EX, Stage.EX, pc_plus_imm)
 
         m.d.comb += imm_gen.insn.eq(insn[Stage.ID])
-        m.d.comb += insn_decoder.insn.eq(insn[Stage.ID])
-        m.d.comb += regfile.rs1_addr.eq(insn_decoder.rs1)
-        m.d.comb += regfile.rs2_addr.eq(insn_decoder.rs2)
-        m.d.comb += self.opcode.eq(insn_decoder.opcode)
-        m.d.comb += self.funct3.eq(insn_decoder.funct3)
-        m.d.comb += self.funct7.eq(insn_decoder.funct7)
+        m.d.comb += decoded_insn.eq(insn[Stage.ID])
+        m.d.comb += regfile.rs1_addr.eq(decoded_insn.rs1)
+        m.d.comb += regfile.rs2_addr.eq(decoded_insn.rs2)
+        m.d.comb += self.opcode.eq(decoded_insn.opcode)
+        m.d.comb += self.funct3.eq(decoded_insn.funct3)
+        m.d.comb += self.funct7.eq(decoded_insn.funct7)
         m.d.comb += self.result_eqz.eq(alu_r[Stage.EX] == 0)
         m.d.comb += self.ex_funct3.eq(mem_funct3[Stage.EX])
         m.d.comb += regfile.rd_addr.eq(rd[Stage.WB])
@@ -143,9 +142,9 @@ class PipelineDataPath(Elaboratable, WithPipeline):
             reg_we[s] & (alu_op[Stage.ID] != AluOp.NONE) & (rd[s] != 0) & (rd[s] == rs) & cond
             for s in [Stage.EX, Stage.MEM, Stage.WB]
             for (rs, cond) in [
-                (insn_decoder.rs1, alua_sel[Stage.ID] == AluASel.RS1),
-                (insn_decoder.rs2, alub_sel[Stage.ID] == AluBSel.RS2),
-                (insn_decoder.rs2, mem_stb[Stage.ID] & mem_we[Stage.ID]),
+                (decoded_insn.rs1, alua_sel[Stage.ID] == AluASel.RS1),
+                (decoded_insn.rs2, alub_sel[Stage.ID] == AluBSel.RS2),
+                (decoded_insn.rs2, mem_stb[Stage.ID] & mem_we[Stage.ID]),
             ]
         ).any()
 

@@ -1,11 +1,10 @@
 from amaranth import *
 from .. import isa
-from ..constants import AluASel, AluBSelMC, WbSelMC, AluOp, PCSelMC, InsnSel, AddrSel
+from ..constants import AluASel, AluBSelMC, WbSelMC, AluOp, PCSelMC, AddrSel
 from ..arch import ArchVariant
 from ..alu import Alu
 from ..regfile import RegFile
 from ..imm_gen import ImmGen
-from ..insn_decoder import InsnDecoder
 
 
 class MultiCycleDataPath(Elaboratable):
@@ -39,12 +38,11 @@ class MultiCycleDataPath(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.insn_decoder = insn_decoder = InsnDecoder()
         m.submodules.alu = alu = Alu(self.variant)
         m.submodules.regfile = regfile = RegFile(self.variant)
         m.submodules.imm_gen = imm_gen = ImmGen(self.variant)
 
-        insn = Signal(isa.INSN_BITS)
+        insn = Signal(isa.Insn())
         alu_reg = Signal.like(alu.r)
         data_reg = Signal.like(self.mem_rdata)
         rs1_reg = Signal.like(regfile.rs1_data)
@@ -67,16 +65,15 @@ class MultiCycleDataPath(Elaboratable):
         m.d.sync += rs1_reg.eq(regfile.rs1_data)
         m.d.sync += rs2_reg.eq(regfile.rs2_data)
 
-        m.d.comb += insn_decoder.insn.eq(insn)
         m.d.comb += imm_gen.insn.eq(insn)
-        m.d.comb += self.opcode.eq(insn_decoder.opcode)
-        m.d.comb += self.funct3.eq(insn_decoder.funct3)
-        m.d.comb += self.funct7.eq(insn_decoder.funct7)
+        m.d.comb += self.opcode.eq(insn.opcode)
+        m.d.comb += self.funct3.eq(insn.funct3)
+        m.d.comb += self.funct7.eq(insn.funct7)
         m.d.comb += self.result_eqz.eq(alu.r == 0)
         m.d.comb += alu.alu_op.eq(self.alu_op)
-        m.d.comb += regfile.rs1_addr.eq(insn_decoder.rs1)
-        m.d.comb += regfile.rs2_addr.eq(insn_decoder.rs2)
-        m.d.comb += regfile.rd_addr.eq(insn_decoder.rd)
+        m.d.comb += regfile.rs1_addr.eq(insn.rs1)
+        m.d.comb += regfile.rs2_addr.eq(insn.rs2)
+        m.d.comb += regfile.rd_addr.eq(insn.rd)
         m.d.comb += regfile.we.eq(self.reg_we)
         m.d.comb += self.mem_wdata.eq(regfile.rs2_data)
 

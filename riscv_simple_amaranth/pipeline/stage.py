@@ -1,4 +1,5 @@
 from amaranth import *
+from amaranth.tracer import get_var_name
 from enum import IntEnum
 
 
@@ -16,9 +17,10 @@ class WithPipeline:
     step: Signal
 
     def pipeline_signal(self, m: Module, start: Stage, end: Stage, init, *, bubble_value=None) -> dict[Stage, Signal]:
+        name = get_var_name()
         d: dict[Stage, Signal] = {}
         for s in range(start, end + 1):
-            d[Stage(s)] = Signal.like(init, name=init.name + str(Stage(s)))
+            d[Stage(s)] = Signal.like(init, name=name + str(Stage(s)))
         m.d.comb += d[start].eq(init)
         with m.If(self.step):
             for s in range(start, end):

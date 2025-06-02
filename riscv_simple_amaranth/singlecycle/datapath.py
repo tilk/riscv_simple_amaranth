@@ -5,7 +5,6 @@ from ..arch import ArchVariant
 from ..alu import Alu
 from ..regfile import RegFile
 from ..imm_gen import ImmGen
-from ..insn_decoder import InsnDecoder
 
 
 class SingleCycleDataPath(Elaboratable):
@@ -29,7 +28,7 @@ class SingleCycleDataPath(Elaboratable):
 
         # Program memory
         self.pc = Signal(variant.BIT_WIDTH, init=0x400000)
-        self.insn = Signal(isa.INSN_BITS)
+        self.insn = Signal(isa.Insn())
 
         # Data memory
         self.mem_addr = Signal(variant.BIT_WIDTH)
@@ -39,21 +38,19 @@ class SingleCycleDataPath(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.insn_decoder = insn_decoder = InsnDecoder()
         m.submodules.alu = alu = Alu(self.variant)
         m.submodules.regfile = regfile = RegFile(self.variant)
         m.submodules.imm_gen = imm_gen = ImmGen(self.variant)
 
-        m.d.comb += insn_decoder.insn.eq(self.insn)
         m.d.comb += imm_gen.insn.eq(self.insn)
-        m.d.comb += self.opcode.eq(insn_decoder.opcode)
-        m.d.comb += self.funct3.eq(insn_decoder.funct3)
-        m.d.comb += self.funct7.eq(insn_decoder.funct7)
+        m.d.comb += self.opcode.eq(self.insn.opcode)
+        m.d.comb += self.funct3.eq(self.insn.funct3)
+        m.d.comb += self.funct7.eq(self.insn.funct7)
         m.d.comb += self.result_eqz.eq(alu.r == 0)
         m.d.comb += alu.alu_op.eq(self.alu_op)
-        m.d.comb += regfile.rs1_addr.eq(insn_decoder.rs1)
-        m.d.comb += regfile.rs2_addr.eq(insn_decoder.rs2)
-        m.d.comb += regfile.rd_addr.eq(insn_decoder.rd)
+        m.d.comb += regfile.rs1_addr.eq(self.insn.rs1)
+        m.d.comb += regfile.rs2_addr.eq(self.insn.rs2)
+        m.d.comb += regfile.rd_addr.eq(self.insn.rd)
         m.d.comb += regfile.we.eq(self.reg_we)
         m.d.comb += self.mem_wdata.eq(regfile.rs2_data)
         m.d.comb += self.mem_addr.eq(alu.r)
