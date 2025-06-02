@@ -1,4 +1,5 @@
 from amaranth import *
+from amaranth.lib.memory import Memory
 from .arch import ArchVariant
 
 
@@ -16,10 +17,10 @@ class RegFile(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        regs = Memory(width=self.variant.BIT_WIDTH, depth=self.variant.REGS)
-        m.submodules.ps1 = ps1 = regs.read_port(domain="comb")
-        m.submodules.ps2 = ps2 = regs.read_port(domain="comb")
-        m.submodules.pd = pd = regs.write_port()
+        m.submodules.regs = regs = Memory(shape=self.variant.BIT_WIDTH, depth=self.variant.REGS, init=[])
+        ps1 = regs.read_port(domain="comb")
+        ps2 = regs.read_port(domain="comb")
+        pd = regs.write_port()
 
         m.d.comb += ps1.addr.eq(self.rs1_addr)
         m.d.comb += self.rs1_data.eq(ps1.data)
