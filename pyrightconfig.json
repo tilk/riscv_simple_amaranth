@@ -4,5 +4,6 @@
   ],
   "stubPath": "./stubs",
   "reportMissingImports": true,
-  "reportMissingTypeStubs": false
+  "reportMissingTypeStubs": false,
+  "reportWildcardImportFromLibrary": false
 }

@@ -37,7 +37,7 @@ class PipelineDataPath(Elaboratable, WithPipeline):
         self.pc_sel = Signal(PCSel)
 
         # Program memory
-        self.pc = Signal(variant.BIT_WIDTH, reset=0x400000)
+        self.pc = Signal(variant.BIT_WIDTH, init=0x400000)
         self.insn = Signal(isa.INSN_BITS)
 
         # Data memory

@@ -36,7 +36,7 @@ class WishboneData(Elaboratable):
                     bit_width = 8 * (2**i)
                     sign_bit = rdata_shifted[bit_width - 1] & ~self.mem_funct3[2]
                     m.d.comb += self.mem_rdata.eq(
-                        Cat(rdata_shifted[0:bit_width], Repl(sign_bit, self.variant.BIT_WIDTH - bit_width))
+                        Cat(rdata_shifted[0:bit_width], sign_bit.replicate(self.variant.BIT_WIDTH - bit_width))
                     )
 
         return m

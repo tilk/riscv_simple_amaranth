@@ -58,12 +58,12 @@ def load_tests(loader, tests, pattern):
                         debugprint("INSN: %.8x %.8x" % (addr, dat))
                         for _ in range(random.randint(0, MAX_WAIT_CYCLES)):
                             yield module.insn_ack_i.eq(0)
-                            yield
+                            yield Tick()
                         yield module.insn_dat_i.eq(dat)
                         yield module.insn_ack_i.eq(1)
                     else:
                         yield module.insn_ack_i.eq(0)
-                    yield
+                    yield Tick()
 
             return gen
 
@@ -96,11 +96,11 @@ def load_tests(loader, tests, pattern):
                             yield module.mem_dat_i.eq(dat)
                         for _ in range(random.randint(0, MAX_WAIT_CYCLES)):
                             yield module.mem_ack_i.eq(0)
-                            yield
+                            yield Tick()
                         yield module.mem_ack_i.eq(1)
                     else:
                         yield module.mem_ack_i.eq(0)
-                    yield
+                    yield Tick()
 
             return gen
 
@@ -108,8 +108,8 @@ def load_tests(loader, tests, pattern):
             debugprint(self.testid)
             sim = Simulator(self.module)
             sim.add_clock(1e-9)
-            sim.add_sync_process(self.text_memory(self.module, self.text))
-            sim.add_sync_process(self.data_memory(self.module, self.data))
+            sim.add_process(self.text_memory(self.module, self.text))
+            sim.add_process(self.data_memory(self.module, self.data))
             with sim.write_vcd("tests/%s.vcd" % self.testid):
                 sim.run()
 
@@ -160,11 +160,11 @@ def load_tests(loader, tests, pattern):
                             yield module.mem_dat_i.eq(dat)
                         for _ in range(random.randint(0, MAX_WAIT_CYCLES)):
                             yield module.mem_ack_i.eq(0)
-                            yield
+                            yield Tick()
                         yield module.mem_ack_i.eq(1)
                     else:
                         yield module.mem_ack_i.eq(0)
-                    yield
+                    yield Tick()
 
             return gen
 
@@ -172,7 +172,7 @@ def load_tests(loader, tests, pattern):
             debugprint(self.testid)
             sim = Simulator(self.module)
             sim.add_clock(1e-9)
-            sim.add_sync_process(self.memory(self.module, self.text, self.data))
+            sim.add_process(self.memory(self.module, self.text, self.data))
             with sim.write_vcd("tests/%s.vcd" % self.testid):
                 sim.run()
 

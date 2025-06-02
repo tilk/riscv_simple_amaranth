@@ -1,3 +1,4 @@
-amaranth==0.3
+amaranth==0.5.4
 amaranth-yosys==0.10.0.dev46
+amaranth-stubs==0.1.1
 intelhex==2.3.0

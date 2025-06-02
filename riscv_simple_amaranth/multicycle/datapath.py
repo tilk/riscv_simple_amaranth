@@ -49,7 +49,7 @@ class MultiCycleDataPath(Elaboratable):
         data_reg = Signal.like(self.mem_rdata)
         rs1_reg = Signal.like(regfile.rs1_data)
         rs2_reg = Signal.like(regfile.rs2_data)
-        pc = Signal(self.variant.BIT_WIDTH, reset=0x400000)
+        pc = Signal(self.variant.BIT_WIDTH, init=0x400000)
         next_pc = Signal.like(pc)
 
         with m.If(self.insn_we):
